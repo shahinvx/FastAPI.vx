@@ -51,8 +51,14 @@ my_project_name/
     │   └── user.py             # User & Permission models with relationships
     ├── schemas/
     │   └── user.py             # Pydantic response schemas
+    ├── services/               # External/utility services
+    │   ├── auth_service.py     # Authentication service
+    │   ├── email_service.py    # Email sending service
+    │   └── ocr_service.py      # OCR processing service
     └── api/
+        ├── routers.py          # Main API router aggregator
         └── v1/                 # API version 1 routes
+            └── home_router.py  # Example router
 ```
 
 ### Pre-built Features
@@ -177,8 +183,52 @@ Generated projects include these basic endpoints:
 
 - `GET /` - Root endpoint with welcome message
 - `GET /health` - Health check endpoint
+- `GET /api/v1/home` - Home endpoint (example API route)
 - `GET /docs` - Interactive API documentation (Swagger UI)
 - `GET /redoc` - Alternative API documentation
+
+### API Architecture
+
+The generated project follows FastAPI best practices with a modular router structure:
+
+#### Router Hierarchy
+```
+app/api/
+├── __init__.py
+├── routers.py              # Main API router (aggregates all v1 routers)
+└── v1/                     # API version 1
+    ├── __init__.py
+    └── home_router.py      # Example router with home endpoint
+```
+
+#### How It Works
+1. **`app/api/routers.py`** - Central router that includes all sub-routers
+2. **`app/api/v1/home_router.py`** - Individual feature routers
+3. **`app/main.py`** - Includes the main API router with `/api/v1` prefix
+4. **All routes automatically get `/api/v1` prefix**
+
+#### Example Router Structure
+```python
+# Main aggregation (routers.py)
+from fastapi import APIRouter
+from app.api.v1.home_router import home_router
+
+api_router = APIRouter()
+api_router.include_router(home_router)
+
+# Individual feature router (v1/home_router.py)
+from fastapi import APIRouter
+
+home_router = APIRouter()
+
+@home_router.get("/home")
+async def home_endpoint():
+    return {"message": "Welcome to the Home Endpoint!"}
+
+# Main app integration (main.py)
+from app.api.routers import api_router
+app.include_router(api_router, prefix="/api/v1")
+```
 
 ## ⚙️ Configuration
 
@@ -248,10 +298,65 @@ pip install -e .
 3. Generate migration: `alembic revision -m "add_model" --autogenerate`
 4. Review and apply: `alembic upgrade head`
 
-### Adding API Endpoints
-1. Create router in `app/api/v1/`
-2. Import in `app/main.py`
-3. Add to FastAPI app with `app.include_router()`
+### Adding New API Routers
+
+#### 1. Create a New Router
+```python
+# app/api/v1/users_router.py
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_session
+from app.schemas.user import UserResponse
+
+users_router = APIRouter(tags=["users"])
+
+@users_router.get("/users", response_model=list[UserResponse])
+async def get_users(session: AsyncSession = Depends(get_session)):
+    # Implementation here
+    return []
+
+@users_router.get("/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: int, session: AsyncSession = Depends(get_session)):
+    # Implementation here
+    pass
+```
+
+#### 2. Register Router in Main Router
+```python
+# app/api/routers.py
+from fastapi import APIRouter
+from app.api.v1.home_router import home_router
+from app.api.v1.users_router import users_router  # Add import
+
+api_router = APIRouter()
+api_router.include_router(home_router)
+api_router.include_router(users_router)  # Add router
+```
+
+#### 3. Alternative: Direct Registration in main.py
+```python
+# app/main.py
+from app.api.v1.users_router import users_router
+
+# Add router directly with custom prefix
+app.include_router(users_router, prefix="/api/v1", tags=["users"])
+```
+
+## 🎯 API Development
+
+For comprehensive API development patterns, CRUD examples, service layers, error handling, and advanced FastAPI techniques, see:
+
+**📖 [API Development Guide](./API_DEVELOPMENT.md)**
+
+The guide includes:
+- 📊 **Complete development flow diagram**
+- 🏗️ **Project architecture patterns**
+- 🎯 **CRUD router examples**
+- 🔧 **Service layer implementation**
+- 🛡️ **Authentication & authorization**
+- ⚡ **Performance optimization**
+- 🧪 **Testing strategies**
+- 📚 **Best practices**
 
 ### Database Operations
 
