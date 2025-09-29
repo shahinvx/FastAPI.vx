@@ -38,6 +38,7 @@ def create_directory_structure(project_name):
         base_path / "app" / "db",
         base_path / "app" / "models",
         base_path / "app" / "schemas",
+        base_path / "app" / "services",
     ]
 
     for directory in directories:
@@ -265,14 +266,180 @@ class UserResponse(BaseModel):
         from_attributes = True
 '''
 
+    # app/api/routers.py
+    routers_content = '''from fastapi import APIRouter
+from app.api.v1.home_router import home_router
+
+api_router = APIRouter()
+api_router.include_router(home_router)
+'''
+
+    # app/api/v1/home_router.py
+    home_router_content = '''from fastapi import APIRouter
+
+home_router = APIRouter()
+
+@home_router.get("/home")
+async def home_endpoint():
+    return {"message": "Welcome to the Home Endpoint!"}
+'''
+
+    # app/services/auth_service.py
+    auth_service_content = '''import jwt
+from datetime import datetime, timedelta
+from typing import Optional
+from passlib.context import CryptContext
+
+class AuthService:
+    """Authentication service for handling JWT tokens and password hashing."""
+
+    def __init__(self, secret_key: str, algorithm: str = "HS256"):
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    def hash_password(self, password: str) -> str:
+        """Hash a password using bcrypt."""
+        return self.pwd_context.hash(password)
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        """Verify a password against its hash."""
+        return self.pwd_context.verify(plain_password, hashed_password)
+
+    def create_access_token(self, user_id: int, expires_delta: Optional[timedelta] = None) -> str:
+        """Create JWT access token."""
+        if expires_delta:
+            expire = datetime.utcnow() + expires_delta
+        else:
+            expire = datetime.utcnow() + timedelta(minutes=15)
+
+        to_encode = {"sub": str(user_id), "exp": expire}
+        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+
+    def verify_token(self, token: str) -> Optional[int]:
+        """Verify JWT token and return user ID."""
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+            user_id: int = int(payload.get("sub"))
+            return user_id
+        except jwt.PyJWTError:
+            return None
+'''
+
+    # app/services/email_service.py
+    email_service_content = '''import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from typing import List, Optional
+
+class EmailService:
+    """Email service for sending emails via SMTP."""
+
+    def __init__(self, smtp_server: str, smtp_port: int, username: str, password: str):
+        self.smtp_server = smtp_server
+        self.smtp_port = smtp_port
+        self.username = username
+        self.password = password
+
+    async def send_email(
+        self,
+        to_emails: List[str],
+        subject: str,
+        body: str,
+        html_body: Optional[str] = None
+    ) -> bool:
+        """Send email via SMTP."""
+        try:
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = self.username
+            msg["To"] = ", ".join(to_emails)
+
+            # Add text part
+            text_part = MIMEText(body, "plain")
+            msg.attach(text_part)
+
+            # Add HTML part if provided
+            if html_body:
+                html_part = MIMEText(html_body, "html")
+                msg.attach(html_part)
+
+            # Send email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.username, self.password)
+                server.send_message(msg)
+
+            return True
+        except Exception as e:
+            print(f"Email sending failed: {e}")
+            return False
+
+    async def send_welcome_email(self, user_email: str, username: str) -> bool:
+        """Send welcome email to new user."""
+        subject = "Welcome to our platform!"
+        body = f"Hello {username},\\n\\nWelcome to our platform!"
+        html_body = f"""
+        <html>
+            <body>
+                <h2>Hello {username},</h2>
+                <p>Welcome to our platform!</p>
+            </body>
+        </html>
+        """
+        return await self.send_email([user_email], subject, body, html_body)
+'''
+
+    # app/services/ocr_service.py
+    ocr_service_content = '''import io
+from typing import Optional
+# Uncomment and install these packages for OCR functionality:
+# import pytesseract
+# from PIL import Image
+
+class OCRService:
+    """OCR service for extracting text from images."""
+
+    def __init__(self, tesseract_path: Optional[str] = None):
+        # if tesseract_path:
+        #     pytesseract.pytesseract.tesseract_cmd = tesseract_path
+        pass
+
+    async def extract_text_from_image(self, image_data: bytes) -> str:
+        """Extract text from image using Tesseract OCR."""
+        try:
+            # Uncomment when implementing OCR:
+            # image = Image.open(io.BytesIO(image_data))
+            # text = pytesseract.image_to_string(image)
+            # return text.strip()
+
+            # Placeholder implementation
+            return "OCR not implemented yet. Install pytesseract and PIL to enable."
+        except Exception as e:
+            print(f"OCR processing failed: {e}")
+            return ""
+
+    async def detect_language(self, image_data: bytes) -> str:
+        """Detect language of text in image."""
+        try:
+            # Placeholder implementation
+            return "en"
+        except Exception as e:
+            print(f"Language detection failed: {e}")
+            return "en"
+'''
+
     # app/main.py
     main_content = '''from fastapi import FastAPI
+from app.api.routers import api_router
 
 app = FastAPI(
     title="FastAPI SQLite App",
     description="A FastAPI application with SQLite, SQLAlchemy, and Alembic",
     version="1.0.0"
 )
+
+app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
@@ -298,8 +465,14 @@ async def health_check():
         (base_path / "app" / "models" / "user.py", models_content),
         (base_path / "app" / "schemas" / "__init__.py", init_content),
         (base_path / "app" / "schemas" / "user.py", schemas_content),
+        (base_path / "app" / "services" / "__init__.py", init_content),
+        (base_path / "app" / "services" / "auth_service.py", auth_service_content),
+        (base_path / "app" / "services" / "email_service.py", email_service_content),
+        (base_path / "app" / "services" / "ocr_service.py", ocr_service_content),
         (base_path / "app" / "api" / "__init__.py", init_content),
+        (base_path / "app" / "api" / "routers.py", routers_content),
         (base_path / "app" / "api" / "v1" / "__init__.py", init_content),
+        (base_path / "app" / "api" / "v1" / "home_router.py", home_router_content),
         (base_path / "app" / "main.py", main_content),
     ]
 
