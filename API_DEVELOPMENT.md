@@ -52,13 +52,13 @@ graph TD
     K1 --> K2[Manual Testing]
     K2 --> K3[Unit Tests]
 
-    style A fill:#e1f5fe
-    style M fill:#c8e6c9
-    style C fill:#fff3e0
-    style F fill:#f3e5f5
-    style G fill:#e3f2fd
-    style H fill:#e8f5e8
-    style I fill:#fff8e1
+    style A fill:#e1f5fe,color:#000
+    style M fill:#c8e6c9,color:#000
+    style C fill:#fff3e0,color:#000
+    style F fill:#f3e5f5,color:#000
+    style G fill:#e3f2fd,color:#000
+    style H fill:#e8f5e8,color:#000
+    style I fill:#fff8e1,color:#000
 ```
 
 ### Developer File Hierarchy & Edit Flow
@@ -99,12 +99,12 @@ graph TD
     MANUAL --> UNIT["📝 Write unit tests"]
 
     %% File type styling
-    classDef modelFile fill:#ffecb3,stroke:#ff8f00,stroke-width:2px
-    classDef schemaFile fill:#e1bee7,stroke:#8e24aa,stroke-width:2px
-    classDef serviceFile fill:#bbdefb,stroke:#1976d2,stroke-width:2px
-    classDef routerFile fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
-    classDef configFile fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
-    classDef cmdStyle fill:#f5f5f5,stroke:#616161,stroke-width:2px
+    classDef modelFile fill:#ffecb3,stroke:#ff8f00,stroke-width:2px,color:#000
+    classDef schemaFile fill:#e1bee7,stroke:#8e24aa,stroke-width:2px,color:#000
+    classDef serviceFile fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef routerFile fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef configFile fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px,color:#000
+    classDef cmdStyle fill:#f5f5f5,stroke:#616161,stroke-width:2px,color:#000
 
     class MODEL_FILE modelFile
     class SCHEMA_FILE schemaFile
@@ -158,12 +158,12 @@ graph TD
     REGISTER_ROUTER --> TEST_API[🧪 Test API endpoints]
     TEST_API --> DONE
 
-    style START fill:#e3f2fd
-    style DONE fill:#c8e6c9
-    style CREATE_MODEL fill:#fff3e0
-    style CREATE_SCHEMA fill:#f3e5f5
-    style CREATE_SERVICE fill:#e3f2fd
-    style CREATE_ROUTER fill:#e8f5e8
+    style START fill:#e3f2fd,color:#000
+    style DONE fill:#c8e6c9,color:#000
+    style CREATE_MODEL fill:#fff3e0,color:#000
+    style CREATE_SCHEMA fill:#f3e5f5,color:#000
+    style CREATE_SERVICE fill:#e3f2fd,color:#000
+    style CREATE_ROUTER fill:#e8f5e8,color:#000
 ```
 
 ## 🏗️ Project Architecture
