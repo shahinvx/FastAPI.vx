@@ -68,15 +68,10 @@ graph TD
 
     REQ --> MODEL[1. Create Database Model]
     MODEL --> MODEL_FILE[📁 app/models/feature.py]
-    MODEL_FILE --> MODEL_CODE[
-        "class Feature(Base):
-         __tablename__ = 'features'
-         id = Column(Integer, primary_key=True)
-         name = Column(String, nullable=False)"
-    ]
+    MODEL_FILE --> MODEL_CODE["Define Feature class with SQLAlchemy"]
 
     MODEL --> MIGRATION[2. Generate Migration]
-    MIGRATION --> MIGRATION_CMD["💻 alembic revision -m 'add feature' --autogenerate"]
+    MIGRATION --> MIGRATION_CMD["💻 alembic revision -m add_feature --autogenerate"]
     MIGRATION_CMD --> MIGRATION_FILE[📁 alembic/versions/xxx_add_feature.py]
 
     MIGRATION --> APPLY[3. Apply Migration]
@@ -84,36 +79,19 @@ graph TD
 
     APPLY --> SCHEMA[4. Create Schemas]
     SCHEMA --> SCHEMA_FILE[📁 app/schemas/feature.py]
-    SCHEMA_FILE --> SCHEMA_CODE[
-        "class FeatureCreate(BaseModel):
-         class FeatureResponse(BaseModel):
-         class FeatureUpdate(BaseModel):"
-    ]
+    SCHEMA_FILE --> SCHEMA_CODE["Create Pydantic models for validation"]
 
     SCHEMA --> SERVICE[5. Create Service Layer]
     SERVICE --> SERVICE_FILE[📁 app/services/feature_service.py]
-    SERVICE_FILE --> SERVICE_CODE[
-        "class FeatureService:
-         async def get_feature(id): ...
-         async def create_feature(): ...
-         async def update_feature(): ..."
-    ]
+    SERVICE_FILE --> SERVICE_CODE["External service integration if needed"]
 
     SERVICE --> ROUTER[6. Create API Router]
     ROUTER --> ROUTER_FILE[📁 app/api/v1/features.py]
-    ROUTER_FILE --> ROUTER_CODE[
-        "@router.get('/features')
-         @router.post('/features')
-         @router.put('/features/{id}')
-         @router.delete('/features/{id}')"
-    ]
+    ROUTER_FILE --> ROUTER_CODE["Define CRUD endpoints"]
 
     ROUTER --> REGISTER[7. Register Router]
     REGISTER --> MAIN_ROUTER[📁 app/api/routers.py]
-    MAIN_ROUTER --> REGISTER_CODE[
-        "from app.api.v1.features import features_router
-         api_router.include_router(features_router)"
-    ]
+    MAIN_ROUTER --> REGISTER_CODE["Import and include router"]
 
     REGISTER --> TEST[8. Test & Validate]
     TEST --> DOCS["🌐 Visit /docs to test endpoints"]
