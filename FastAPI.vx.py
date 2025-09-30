@@ -4,10 +4,10 @@ FastAPI + SQLite + Alembic Project Boilerplate Creator
 Supports Windows and Ubuntu/Linux
 
 Usage:
-    python create_project.py <project_name>
+    python FastAPI.vx.py <project_name>
 
 Example:
-    python create_project.py my_fastapi_app
+    python FastAPI.vx.py my_fastapi_app
 """
 
 import os
@@ -72,7 +72,7 @@ def init_alembic(base_path):
         os.chdir(original_dir)
 
 
-def create_project_files(base_path):
+def FastAPI.vx_files(base_path):
     """Create all project files with boilerplate content"""
 
     # pyproject.toml
@@ -936,8 +936,8 @@ CORS_ALLOW_CREDENTIALS="false"  # Set to false for security
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python create_project.py <project_name>")
-        print("Example: python create_project.py my_fastapi_app")
+        print("Usage: python FastAPI.vx.py <project_name>")
+        print("Example: python FastAPI.vx.py my_fastapi_app")
         sys.exit(1)
 
     project_name = sys.argv[1]
@@ -954,7 +954,7 @@ def main():
     base_path = create_directory_structure(project_name)
 
     # Create all project files
-    create_project_files(base_path)
+    FastAPI.vx_files(base_path)
 
     # Initialize Alembic and update configuration
     if init_alembic(base_path):
@@ -984,3 +984,4 @@ The application will be available at: http://localhost:8000
 
 if __name__ == "__main__":
     main()
+
