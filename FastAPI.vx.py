@@ -768,14 +768,21 @@ cd {project_name}
     │   └── user.py             # User and Permission models
     ├── schemas/                # Pydantic schemas
     │   └── user.py             # User response schemas
+    ├── services/               # External services
+    │   ├── auth_service.py     # JWT & password hashing
+    │   ├── email_service.py    # Email sending service
+    │   └── ocr_service.py      # OCR text extraction
     └── api/
+        ├── routers.py          # API router configuration
         └── v1/                 # API version 1
+            └── home_router.py  # Home endpoint router
 ```
 
 ## Available Endpoints
 
 - `GET /` - Root endpoint
 - `GET /health` - Health check
+- `GET /api/v1/home` - Home endpoint
 - API Documentation: http://localhost:8000/docs
 
 ## Database Models
