@@ -6,7 +6,7 @@ A Python script that generates a complete FastAPI project with SQLite database, 
 
 ```bash
 # Generate a new project
-python create_project.py my_awesome_api
+python FastAPI.vx.py my_awesome_api
 
 # Navigate to project
 cd my_awesome_api
@@ -74,14 +74,14 @@ my_project_name/
 
 ### Basic Usage
 ```bash
-python create_project.py blog_api
+python FastAPI.vx.py blog_api
 ```
 
 ### Different Project Names
 ```bash
-python create_project.py ecommerce_backend
-python create_project.py inventory_system
-python create_project.py user_management_api
+python FastAPI.vx.py ecommerce_backend
+python FastAPI.vx.py inventory_system
+python FastAPI.vx.py user_management_api
 ```
 
 ## 📖 Generated Project Documentation
@@ -251,7 +251,7 @@ DB_ECHO="false"  # Set to "true" for SQL query logging
 ```bash
 # Remove existing directory first
 rm -rf project_name
-python create_project.py project_name
+python FastAPI.vx.py project_name
 ```
 
 #### 2. "Alembic command not found"
@@ -594,7 +594,7 @@ sqlite3 app.db "PRAGMA compile_options;"
 ## 🎨 Customization
 
 ### Modifying the Generator
-The `create_project.py` script can be customized to:
+The `FastAPI.vx.py` script can be customized to:
 - Change default dependencies in `pyproject_content`
 - Modify database models in `models_content`
 - Add additional files or directories
@@ -619,11 +619,12 @@ After generation, you can:
 ## 🤝 Contributing
 
 To improve the generator:
-1. Modify `create_project.py`
-2. Test with: `python create_project.py test_project`
+1. Modify `FastAPI.vx.py`
+2. Test with: `python FastAPI.vx.py test_project`
 3. Verify all features work correctly
 4. Update this documentation if needed
 
 ## 📄 License
 
 Use this generator freely for any project. The generated projects are yours to modify and distribute as needed.
+
