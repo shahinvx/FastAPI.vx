@@ -109,6 +109,12 @@ exclude = ["alembic*"]
 
     # .env
     env_content = '''DATABASE_URL="sqlite+aiosqlite:///./app.db"
+
+# CORS Configuration
+CORS_ORIGINS="http://localhost:3000,http://localhost:8080,http://localhost:4200,http://localhost:1420"
+CORS_ALLOW_CREDENTIALS="true"
+CORS_ALLOW_METHODS="GET,POST,PUT,DELETE,OPTIONS"
+CORS_ALLOW_HEADERS="Accept,Authorization,Content-Type,X-Requested-With"
 '''
 
     # alembic.ini
@@ -429,15 +435,92 @@ class OCRService:
             return "en"
 '''
 
+    # app/services/cors_service.py
+    cors_service_content = '''import os
+from typing import List
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
+
+class CORSService:
+    """CORS configuration service for FastAPI applications."""
+
+    @staticmethod
+    def get_allowed_origins() -> List[str]:
+        """Get allowed origins from environment variables."""
+        cors_origins = os.getenv("CORS_ORIGINS", "")
+
+        if cors_origins:
+            return [origin.strip() for origin in cors_origins.split(",")]
+
+        # Default development origins
+        return [
+            "http://localhost:3000",  # React default
+            "http://localhost:8080",  # Vue default
+            "http://localhost:4200",  # Angular default
+            "http://localhost:1420",  # Tauri default
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:8080",
+            "http://127.0.0.1:4200",
+            "http://127.0.0.1:1420",
+        ]
+
+    @staticmethod
+    def get_allowed_methods() -> List[str]:
+        """Get allowed HTTP methods from environment variables."""
+        methods = os.getenv("CORS_ALLOW_METHODS", "GET,POST,PUT,DELETE,OPTIONS")
+        return [method.strip() for method in methods.split(",")]
+
+    @staticmethod
+    def get_allowed_headers() -> List[str]:
+        """Get allowed headers from environment variables."""
+        headers = os.getenv("CORS_ALLOW_HEADERS", "Accept,Authorization,Content-Type,X-Requested-With")
+        return [header.strip() for header in headers.split(",")]
+
+    @staticmethod
+    def get_allow_credentials() -> bool:
+        """Get allow credentials setting from environment variables."""
+        return os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
+
+    @classmethod
+    def setup_cors(cls, app: FastAPI) -> None:
+        """Set up CORS middleware for FastAPI application."""
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=cls.get_allowed_origins(),
+            allow_credentials=cls.get_allow_credentials(),
+            allow_methods=cls.get_allowed_methods(),
+            allow_headers=cls.get_allowed_headers(),
+        )
+
+    @classmethod
+    def setup_production_cors(cls, app: FastAPI, allowed_origins: List[str]) -> None:
+        """Set up CORS middleware for production with specific origins."""
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=allowed_origins,
+            allow_credentials=False,  # More secure for production
+            allow_methods=["GET", "POST", "PUT", "DELETE"],  # Restrict OPTIONS
+            allow_headers=["Accept", "Authorization", "Content-Type"],
+        )
+'''
+
     # app/main.py
     main_content = '''from fastapi import FastAPI
+from dotenv import load_dotenv
 from app.api.routers import api_router
+from app.services.cors_service import CORSService
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(
     title="FastAPI SQLite App",
     description="A FastAPI application with SQLite, SQLAlchemy, and Alembic",
     version="1.0.0"
 )
+
+# Setup CORS middleware
+CORSService.setup_cors(app)
 
 app.include_router(api_router, prefix="/api/v1")
 
@@ -469,6 +552,7 @@ async def health_check():
         (base_path / "app" / "services" / "auth_service.py", auth_service_content),
         (base_path / "app" / "services" / "email_service.py", email_service_content),
         (base_path / "app" / "services" / "ocr_service.py", ocr_service_content),
+        (base_path / "app" / "services" / "cors_service.py", cors_service_content),
         (base_path / "app" / "api" / "__init__.py", init_content),
         (base_path / "app" / "api" / "routers.py", routers_content),
         (base_path / "app" / "api" / "v1" / "__init__.py", init_content),
@@ -771,7 +855,8 @@ cd {project_name}
     ├── services/               # External services
     │   ├── auth_service.py     # JWT & password hashing
     │   ├── email_service.py    # Email sending service
-    │   └── ocr_service.py      # OCR text extraction
+    │   ├── ocr_service.py      # OCR text extraction
+    │   └── cors_service.py     # CORS configuration utility
     └── api/
         ├── routers.py          # API router configuration
         └── v1/                 # API version 1
@@ -813,7 +898,37 @@ Create/modify `.env` file:
 ```
 DATABASE_URL="sqlite+aiosqlite:///./app.db"
 DB_ECHO="false"  # Set to "true" for SQL logging
+
+# CORS Configuration
+CORS_ORIGINS="http://localhost:3000,http://localhost:8080,http://localhost:4200,http://localhost:1420"
+CORS_ALLOW_CREDENTIALS="true"
+CORS_ALLOW_METHODS="GET,POST,PUT,DELETE,OPTIONS"
+CORS_ALLOW_HEADERS="Accept,Authorization,Content-Type,X-Requested-With"
 ```
+
+## CORS Configuration
+
+The application includes CORS middleware for frontend integration:
+
+### Development Setup
+Default allowed origins for common frontend frameworks:
+- React: `http://localhost:3000`
+- Vue.js: `http://localhost:8080`
+- Angular: `http://localhost:4200`
+- Tauri: `http://localhost:1420`
+
+### Production Setup
+For production, specify exact origins:
+```env
+CORS_ORIGINS="https://yourdomain.com,https://www.yourdomain.com"
+CORS_ALLOW_CREDENTIALS="false"  # Set to false for security
+```
+
+### Custom CORS Settings
+- `CORS_ORIGINS`: Comma-separated list of allowed origins
+- `CORS_ALLOW_CREDENTIALS`: Allow cookies and authentication headers
+- `CORS_ALLOW_METHODS`: HTTP methods to allow
+- `CORS_ALLOW_HEADERS`: Request headers to allow
 '''
 
     create_file(base_path / "README.md", readme_content)
